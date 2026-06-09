@@ -1,40 +1,36 @@
-# NoticeBoard
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
-A full-stack Notice Board application built with Next.js, Prisma, and MySQL.
-Live demo: (add your Vercel URL after deploying)
+## Getting Started
 
-## Features
-- Create, read, update, and delete notices
-- Categories: Exam, Event, General
-- Priority: Urgent notices appear at the top with a red badge
-- Responsive on mobile and desktop
-- Server-side validation on all API routes
+First, run the development server:
 
-## How to run locally
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
 
-1. Clone the repository
-   git clone https://github.com/Abhinandan-Maurya85/notice-board.git
-   cd notice-board
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-2. Install dependencies
-   npm install
+You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
 
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-4. Run Prisma migrations
-   npx prisma migrate dev
+## Learn More
 
-5. Start the development server
-   npm run dev
+To learn more about Next.js, take a look at the following resources:
 
-6. Open http://localhost:3000
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-## One thing I would improve with more time
-I would add user authentication so only authorized staff can post,
-edit, or delete notices, while students can only view them.
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
+## Deploy on Vercel
 
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-## How AI was used
-AI was used to help with styling, component structure, and debugging
-CSS layout issues. All logic, API routes, and database schema were
-written and understood by me.
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
