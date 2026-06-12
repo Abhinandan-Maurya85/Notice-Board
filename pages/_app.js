@@ -1,5 +1,4 @@
 import '../styles/globals.css'
-// delete the additions.css line
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 

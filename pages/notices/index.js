@@ -1,5 +1,5 @@
 import Head from 'next/head'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import NoticeCard from '../../components/NoticeCard'
 import { prisma } from '../../lib/prisma'
@@ -29,6 +29,16 @@ export default function NoticesPage({ notices: initialNotices }) {
   const [filter, setFilter] = useState('All')
   const [search, setSearch] = useState('')
 
+  // ✅ SLIDESHOW ADDED HERE
+   const bgImages = ['/images/lu1.webp', '/images/lu2.webp']
+  const [bgIndex, setBgIndex] = useState(0)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setBgIndex(prev => (prev + 1) % bgImages.length)
+    }, 4000)
+    return () => clearInterval(interval)
+  }, [])
+
   const handleDelete = (id) => {
     setNotices(prev => prev.filter(n => n.id !== id))
   }
@@ -51,8 +61,13 @@ export default function NoticesPage({ notices: initialNotices }) {
         <meta name="description" content="Official notice board for all announcements" />
       </Head>
 
-      {/* HERO SECTION */}
-      <div className="hero">
+      {/* HERO SECTION — ✅ BACKGROUND IMAGE ADDED HERE */}
+      <div className="hero" style={{
+        backgroundImage: `url(${bgImages[bgIndex]})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        transition: 'background-image 1s ease-in-out',
+      }}>
         <div className="hero-content">
           <div className="hero-badge">📢 Live Announcements</div>
           <h1 className="hero-title">Notice Board</h1>
