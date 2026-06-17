@@ -1,12 +1,26 @@
 import { prisma } from '../../../lib/prisma'
+import { getAuthUser } from '../../../lib/auth'
 
 export default async function handler(req, res) {
+  const user = getAuthUser(req)
+  if (!user) {
+    return res.status(401).json({ error: 'Unauthorized. Please log in.' })
+  }
+
   const { id } = req.query
   const noticeId = parseInt(id)
 
   if (isNaN(noticeId)) {
     return res.status(400).json({ error: 'Invalid ID' })
   }
+
+  // Restrict modification operations to Faculty only
+  if (req.method === 'PUT' || req.method === 'DELETE') {
+    if (user.role !== 'FACULTY') {
+      return res.status(403).json({ error: 'Access denied. Only faculty can modify notices.' })
+    }
+  }
+
 
   if (req.method === 'GET') {
     const notice = await prisma.notice.findUnique({ where: { id: noticeId } })

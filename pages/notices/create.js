@@ -2,8 +2,23 @@ import Head from 'next/head'
 import { useState } from 'react'
 import { useRouter } from 'next/router'
 import NoticeForm from '../../components/NoticeForm'
+import { getAuthUser } from '../../lib/auth'
+
+export async function getServerSideProps(context) {
+  const user = getAuthUser(context.req)
+  if (!user || user.role !== 'FACULTY') {
+    return {
+      redirect: {
+        destination: '/notices',
+        permanent: false,
+      },
+    }
+  }
+  return { props: {} }
+}
 
 export default function CreateNotice() {
+
   const router = useRouter()
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)

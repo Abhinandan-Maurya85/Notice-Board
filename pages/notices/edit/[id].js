@@ -2,10 +2,22 @@ import Head from 'next/head'
 import { useState } from 'react'
 import { useRouter } from 'next/router'
 import NoticeForm from '../../../components/NoticeForm'
-
 import { prisma } from '../../../lib/prisma'
+import { getAuthUser } from '../../../lib/auth'
 
-export async function getServerSideProps({ params }) {
+export async function getServerSideProps(context) {
+  // Verify user and ensure they are faculty
+  const user = getAuthUser(context.req)
+  if (!user || user.role !== 'FACULTY') {
+    return {
+      redirect: {
+        destination: '/notices',
+        permanent: false,
+      },
+    }
+  }
+
+  const { params } = context
   const notice = await prisma.notice.findUnique({
     where: { id: parseInt(params.id) },
   })
@@ -21,6 +33,7 @@ export async function getServerSideProps({ params }) {
     },
   }
 }
+
 
 export default function EditNotice({ notice }) {
   const router = useRouter()

@@ -1,15 +1,19 @@
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useState } from 'react'
+import { useAuth } from '../context/AuthContext'
 
 export default function Navbar() {
   const router = useRouter()
+  const { user, logout } = useAuth()
   const [menuOpen, setMenuOpen] = useState(false)
 
   const links = [
     { href: '/notices', label: 'All Notices' },
     { href: '/about',   label: 'About Us'    },
   ]
+
+  const isFaculty = user?.role === 'FACULTY'
 
   return (
     <nav className="navbar">
@@ -30,9 +34,33 @@ export default function Navbar() {
               {label}
             </Link>
           ))}
-          <Link href="/notices/create" className="nav-btn">
-            + Post Notice
-          </Link>
+          
+          {isFaculty && (
+            <Link href="/notices/create" className="nav-btn">
+              + Post Notice
+            </Link>
+          )}
+
+          {user ? (
+            <div className="nav-user-section">
+              <span className="nav-user-info">
+                Hi, <strong>{user.name}</strong> 
+                <span className="nav-role-badge">{user.role === 'FACULTY' ? 'Faculty' : 'Student'}</span>
+              </span>
+              <button onClick={logout} className="nav-logout-btn">
+                Logout
+              </button>
+            </div>
+          ) : (
+            <div className="nav-auth-buttons">
+              <Link href="/login" className="nav-link">
+                Login
+              </Link>
+              <Link href="/signup" className="nav-signup-btn">
+                Sign Up
+              </Link>
+            </div>
+          )}
         </div>
 
         {/* Hamburger — only visible on mobile via CSS */}
@@ -60,15 +88,39 @@ export default function Navbar() {
               {label}
             </Link>
           ))}
-          <Link
-            href="/notices/create"
-            className="mobile-nav-btn"
-            onClick={() => setMenuOpen(false)}
-          >
-            + Post Notice
-          </Link>
+          
+          {isFaculty && (
+            <Link
+              href="/notices/create"
+              className="mobile-nav-btn"
+              onClick={() => setMenuOpen(false)}
+            >
+              + Post Notice
+            </Link>
+          )}
+
+          {user ? (
+            <div className="mobile-user-section">
+              <div className="mobile-user-info">
+                <strong>{user.name}</strong>
+                <span className="nav-role-badge">{user.role === 'FACULTY' ? 'Faculty' : 'Student'}</span>
+              </div>
+              <button onClick={() => { logout(); setMenuOpen(false); }} className="mobile-logout-btn">
+                Logout
+              </button>
+            </div>
+          ) : (
+            <div className="mobile-auth-buttons">
+              <Link href="/login" className="mobile-link" onClick={() => setMenuOpen(false)}>
+                Login
+              </Link>
+              <Link href="/signup" className="mobile-nav-btn" onClick={() => setMenuOpen(false)}>
+                Sign Up
+              </Link>
+            </div>
+          )}
         </div>
       )}
     </nav>
   )
-}
+}

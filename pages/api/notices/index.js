@@ -1,9 +1,16 @@
 import { prisma } from '../../../lib/prisma'
+import { getAuthUser } from '../../../lib/auth'
 
 export default async function handler(req, res) {
+  const user = getAuthUser(req)
+  if (!user) {
+    return res.status(401).json({ error: 'Unauthorized. Please log in.' })
+  }
+
   if (req.method === 'GET') {
     try {
       const notices = await prisma.notice.findMany({
+
         orderBy: [{ createdAt: 'desc' }],
       })
       const sorted = [
@@ -17,8 +24,12 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'POST') {
+    if (user.role !== 'FACULTY') {
+      return res.status(403).json({ error: 'Access denied. Only faculty can post notices.' })
+    }
     try {
       const { title, body, category, priority, publishDate, imageUrl } = req.body
+
 
       if (!title || !title.trim())
         return res.status(400).json({ error: 'Title is required' })

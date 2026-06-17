@@ -3,8 +3,21 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import NoticeCard from '../../components/NoticeCard'
 import { prisma } from '../../lib/prisma'
+import { getAuthUser } from '../../lib/auth'
+import { useAuth } from '../../context/AuthContext'
 
-export async function getServerSideProps() {
+export async function getServerSideProps(context) {
+  // Enforce server-side authentication redirect
+  const user = getAuthUser(context.req)
+  if (!user) {
+    return {
+      redirect: {
+        destination: '/login',
+        permanent: false,
+      },
+    }
+  }
+
   const notices = await prisma.notice.findMany({
     orderBy: [{ createdAt: 'desc' }],
   })
@@ -25,9 +38,11 @@ export async function getServerSideProps() {
 }
 
 export default function NoticesPage({ notices: initialNotices }) {
+  const { user } = useAuth()
   const [notices, setNotices] = useState(initialNotices)
   const [filter, setFilter] = useState('All')
   const [search, setSearch] = useState('')
+
 
   // ✅ SLIDESHOW ADDED HERE
    const bgImages = ['/images/lu1.webp', '/images/lu2.webp']
@@ -144,9 +159,11 @@ export default function NoticesPage({ notices: initialNotices }) {
               {filtered.length} result{filtered.length !== 1 ? 's' : ''} for "{search}"
             </span>
           )}
-          <Link href="/notices/create" className="post-btn-inline">
-            + Post Notice
-          </Link>
+          {user?.role === 'FACULTY' && (
+            <Link href="/notices/create" className="post-btn-inline">
+              + Post Notice
+            </Link>
+          )}
         </div>
       </div>
 
@@ -155,8 +172,8 @@ export default function NoticesPage({ notices: initialNotices }) {
         <div className="empty-state">
           <span className="empty-state-icon">{search ? '🔍' : '📭'}</span>
           <p>{search ? 'No notices match your search' : 'No notices yet'}</p>
-          <span>{search ? 'Try a different keyword' : 'Be the first to post an announcement'}</span>
-          {!search && (
+          <span>{search ? 'Try a different keyword' : (user?.role === 'FACULTY' ? 'Be the first to post an announcement' : 'Check back later for updates')}</span>
+          {!search && user?.role === 'FACULTY' && (
             <Link href="/notices/create" className="btn-primary" style={{ display: 'inline-flex', marginTop: '1rem' }}>
               Post First Notice
             </Link>
