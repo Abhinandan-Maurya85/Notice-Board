@@ -6,7 +6,7 @@ export default function Footer() {
          <span>📋</span>
          <div>
            <div>NoticeBoard</div>
-           <p>Powered by Reno Platforms</p>
+            
          </div>
        </div>
        <div className="footer-tech">
