@@ -2,40 +2,39 @@ import { useState } from "react";
 
 export default function ChatBot() {
   const [message, setMessage] = useState("");
-  const [reply, setReply] = useState("");
-
-  const sendMessage = async () => {
-    const res = await fetch("/api/chat", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        message,
-      }),
-    });
-
-    const data = await res.json();
-    setReply(data.reply);
-  };
 
   return (
-    <div>
-      <h2>University Assistant</h2>
+    <div style={{ padding: "15px" }}>
+      <h3>🎓 University Assistant</h3>
 
       <input
         type="text"
-        placeholder="Type here..."
+        placeholder="Ask about notices..."
         value={message}
         onChange={(e) => setMessage(e.target.value)}
+        style={{
+          width: "100%",
+          padding: "10px",
+          marginTop: "10px",
+          border: "1px solid #ccc",
+          borderRadius: "8px",
+        }}
       />
 
-      <button onClick={sendMessage}>
+      <button
+        style={{
+          marginTop: "10px",
+          width: "100%",
+          padding: "10px",
+          border: "none",
+          borderRadius: "8px",
+          background: "#2563eb",
+          color: "white",
+          cursor: "pointer",
+        }}
+      >
         Send
       </button>
-
-      <h3>Bot Reply:</h3>
-      <p>{reply}</p>
     </div>
   );
 }

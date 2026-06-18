@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { useAuth } from '../context/AuthContext';
-
+import ChatWidget from "../components/ChatWidget";
 export default function Login() {
   const router = useRouter();
   const { user, loading, login } = useAuth();
@@ -124,6 +124,7 @@ export default function Login() {
           </div>
         </div>
       </div>
+      <ChatWidget />
     </>
   );
 }
