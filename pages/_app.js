@@ -1,7 +1,7 @@
 import '../styles/globals.css'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
-import ChatBot from '../components/ChatBot'
+import ChatWidget from '../components/ChatWidget'
 import { AuthProvider } from '../context/AuthContext'
 
 export default function App({ Component, pageProps }) {
@@ -13,9 +13,10 @@ export default function App({ Component, pageProps }) {
         <Component {...pageProps} />
       </main>
 
-      
-
       <Footer />
+
+      {/* Chatbot on all pages */}
+      <ChatWidget />
     </AuthProvider>
   )
 }

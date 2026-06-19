@@ -38,16 +38,23 @@ export default async function handler(req, res) {
       if (!publishDate || isNaN(new Date(publishDate)))
         return res.status(400).json({ error: 'A valid publish date is required' })
 
-      const notice = await prisma.notice.create({
-        data: {
-          title: title.trim(),
-          body: body.trim(),
-          category: category || 'General',
-          priority: priority || 'Normal',
-          publishDate: new Date(publishDate),
-          imageUrl: imageUrl || null,
-        },
-      })
+        const notice = await prisma.notice.create({
+          data: {
+            title: title.trim(),
+            body: body.trim(),
+            category: category || 'General',
+            priority: priority || 'Normal',
+            publishDate: new Date(publishDate),
+            imageUrl: imageUrl || null,
+          },
+        })
+        
+        // Create Notification
+        await prisma.notification.create({
+          data: {
+            message: `📢 New Notice Added: ${notice.title}`,
+          },
+        })
       return res.status(201).json(notice)
     } catch (err) {
       return res.status(500).json({ error: err.message })

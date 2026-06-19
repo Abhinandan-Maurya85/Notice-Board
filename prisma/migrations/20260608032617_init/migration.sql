@@ -1,4 +1,4 @@
-git commit -m "added LU background slideshow images"-- CreateTable
+
 CREATE TABLE "Notice" (
     "id" TEXT NOT NULL,
     "title" TEXT NOT NULL,
