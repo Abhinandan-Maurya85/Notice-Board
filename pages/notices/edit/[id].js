@@ -43,18 +43,24 @@ export default function EditNotice({ notice }) {
   const handleSubmit = async (formData) => {
     setLoading(true)
     setError('')
-    const res = await fetch(`/api/notices/${notice.id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(formData),
-    })
-    const data = await res.json()
-    setLoading(false)
-    if (!res.ok) {
-      setError(data.error || 'Something went wrong')
-      return
+    try {
+      const res = await fetch(`/api/notices/${notice.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setError(data.error || 'Something went wrong')
+        return
+      }
+      router.push('/notices')
+    } catch (err) {
+      console.error('Edit notice error:', err)
+      setError('Network error. Please check your connection and try again.')
+    } finally {
+      setLoading(false)
     }
-    router.push('/notices')
   }
 
   return (

@@ -32,6 +32,7 @@ model User {
 model Notification {
   id        String   @id @default(cuid())
   message   String
+  noticeId  Int?
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
 }

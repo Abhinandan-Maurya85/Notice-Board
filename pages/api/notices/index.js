@@ -53,6 +53,7 @@ export default async function handler(req, res) {
         await prisma.notification.create({
           data: {
             message: `📢 New Notice Added: ${notice.title}`,
+            noticeId: notice.id,
           },
         })
       return res.status(201).json(notice)
