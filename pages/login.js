@@ -117,7 +117,7 @@ export default function Login() {
           </form>
 
           <div className="auth-footer">
-            Don't have an account?{' '}
+            Don&apos;t have an account?{' '}
             <Link href={`/signup?role=${role}`} className="auth-link">
               Sign up here
             </Link>

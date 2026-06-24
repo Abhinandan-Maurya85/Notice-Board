@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import Link from 'next/link'
 
 export default function NoticeForm({ onSubmit, loading, initialData }) {
   const [form, setForm] = useState({
@@ -87,7 +88,7 @@ export default function NoticeForm({ onSubmit, loading, initialData }) {
       </div>
 
       <div className="form-actions">
-        <a href="/notices" className="btn-secondary">Cancel</a>
+        <Link href="/notices" className="btn-secondary">Cancel</Link>
         <button type="submit" className="btn-primary" disabled={loading}>
           {loading ? 'Saving...' : initialData ? 'Update Notice' : 'Post Notice'}
         </button>

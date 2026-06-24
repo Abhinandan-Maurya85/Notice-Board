@@ -15,12 +15,11 @@ export default function Signup() {
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  // Sync role with query parameter if present on mount
-  useEffect(() => {
-    if (router.query.role === 'FACULTY' || router.query.role === 'STUDENT') {
-      setRole(router.query.role);
-    }
-  }, [router.query]);
+  // Sync role with query parameter if present (state update during render to avoid useEffect cascading renders)
+  const queryRole = router.query.role;
+  if ((queryRole === 'FACULTY' || queryRole === 'STUDENT') && queryRole !== role) {
+    setRole(queryRole);
+  }
 
   // Redirect if already logged in
   useEffect(() => {

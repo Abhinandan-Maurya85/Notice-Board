@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../context/AuthContext'
+import { useSocket } from '../hooks/useSocket'
 
 export default function Navbar() {
   const router = useRouter()
@@ -9,61 +10,64 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [notifications, setNotifications] = useState([])
   const [showNotifications, setShowNotifications] = useState(false)
+  const [isConnected, setIsConnected] = useState(false)          // NEW
   const notificationRef = useRef(null)
-
-  const links = [
-    { href: '/notices', label: 'All Notices' },
-    { href: '/about', label: 'About Us' },
-  ]
 
   const isFaculty = user?.role === 'FACULTY'
   const unreadCount = notifications.filter((n) => !n.isRead).length
 
-  useEffect(() => {
-    if (!user) return // don't poll when logged out
+  const links = [
+    { href: '/notices', label: 'All Notices' },
+    { href: '/about', label: 'About Us' },
+    ...(isFaculty ? [{ href: '/analytics', label: 'Analytics' }] : [])
+  ]
 
-    loadNotifications()
-    const interval = setInterval(loadNotifications, 10000)
-    return () => clearInterval(interval)
-  }, [user])
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (
-        notificationRef.current &&
-        !notificationRef.current.contains(event.target)
-      ) {
-        setShowNotifications(false)
-      }
-    }
-
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
+  // NEW — wire up the socket (was imported but never called)
+  useSocket(user?.id, {
+    onNotification: (data) => setNotifications((prev) => [data, ...prev]),
+    onConnect: () => setIsConnected(true),
+    onDisconnect: () => setIsConnected(false),
+  })
 
   const loadNotifications = async () => {
     try {
       const res = await fetch('/api/notifications')
-      const data = await res.json()
-      setNotifications(data)
+      if (res.ok) {
+        const data = await res.json()
+        if (Array.isArray(data)) {
+          setNotifications(data)
+        }
+      }
     } catch (err) {
       console.log(err)
     }
   }
 
+  useEffect(() => {
+    if (!user) return
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadNotifications()
+    const interval = setInterval(loadNotifications, 30000) // was 10000
+    return () => clearInterval(interval)
+  }, [user])
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (notificationRef.current && !notificationRef.current.contains(event.target)) {
+        setShowNotifications(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
   const handleNotificationClick = async (n) => {
     setShowNotifications(false)
-
-    if (n.noticeId) {
-      router.push(`/notices/${n.noticeId}`)
-    }
-
+    if (n.noticeId) router.push(`/notices/${n.noticeId}`)
     if (n.isRead) return
-
     setNotifications((prev) =>
       prev.map((notif) => (notif.id === n.id ? { ...notif, isRead: true } : notif))
     )
-
     try {
       await fetch(`/api/notifications/${n.id}/read`, { method: 'PATCH' })
     } catch (err) {
@@ -81,19 +85,13 @@ export default function Navbar() {
 
         <div className="nav-links">
           {links.map(({ href, label }) => (
-            <Link
-              key={href}
-              href={href}
-              className={`nav-link ${router.pathname === href ? 'active' : ''}`}
-            >
+            <Link key={href} href={href} className={`nav-link ${router.pathname === href ? 'active' : ''}`}>
               {label}
             </Link>
           ))}
 
           {isFaculty && (
-            <Link href="/notices/create" className="nav-btn">
-              + Post Notice
-            </Link>
+            <Link href="/notices/create" className="nav-btn">+ Post Notice</Link>
           )}
 
           {user && (
@@ -103,6 +101,7 @@ export default function Navbar() {
                 onClick={() => setShowNotifications(!showNotifications)}
               >
                 🔔
+                {isConnected && <span className="socket-live-dot" title="Live" />}  {/* NEW */}
                 {unreadCount > 0 && (
                   <span className="notification-count">{unreadCount}</span>
                 )}
@@ -111,7 +110,6 @@ export default function Navbar() {
               {showNotifications && (
                 <div className="notification-dropdown">
                   <div className="notification-header">Notifications</div>
-
                   {notifications.length > 0 ? (
                     notifications.map((n) => (
                       <div
@@ -139,18 +137,12 @@ export default function Navbar() {
                   {user.role === 'FACULTY' ? 'Faculty' : 'Student'}
                 </span>
               </span>
-              <button onClick={logout} className="nav-logout-btn">
-                Logout
-              </button>
+              <button onClick={logout} className="nav-logout-btn">Logout</button>
             </div>
           ) : (
             <div className="nav-auth-buttons">
-              <Link href="/login" className="nav-link">
-                Login
-              </Link>
-              <Link href="/signup" className="nav-signup-btn">
-                Sign Up
-              </Link>
+              <Link href="/login" className="nav-link">Login</Link>
+              <Link href="/signup" className="nav-signup-btn">Sign Up</Link>
             </div>
           )}
         </div>
@@ -160,61 +152,36 @@ export default function Navbar() {
           onClick={() => setMenuOpen(!menuOpen)}
           aria-label="Toggle menu"
         >
-          <span />
-          <span />
-          <span />
+          <span /><span /><span />
         </button>
       </div>
 
       {menuOpen && (
         <div className="mobile-menu">
           {links.map(({ href, label }) => (
-            <Link
-              key={href}
-              href={href}
-              className={`mobile-link ${router.pathname === href ? 'active' : ''}`}
-              onClick={() => setMenuOpen(false)}
-            >
+            <Link key={href} href={href} className={`mobile-link ${router.pathname === href ? 'active' : ''}`} onClick={() => setMenuOpen(false)}>
               {label}
             </Link>
           ))}
-
           {isFaculty && (
-            <Link
-              href="/notices/create"
-              className="mobile-nav-btn"
-              onClick={() => setMenuOpen(false)}
-            >
+            <Link href="/notices/create" className="mobile-nav-btn" onClick={() => setMenuOpen(false)}>
               + Post Notice
             </Link>
           )}
-
           {user ? (
             <div className="mobile-user-section">
               <div className="mobile-user-info">
                 <strong>{user.name}</strong>
-                <span className="nav-role-badge">
-                  {user.role === 'FACULTY' ? 'Faculty' : 'Student'}
-                </span>
+                <span className="nav-role-badge">{user.role === 'FACULTY' ? 'Faculty' : 'Student'}</span>
               </div>
-              <button
-                onClick={() => {
-                  logout()
-                  setMenuOpen(false)
-                }}
-                className="mobile-logout-btn"
-              >
+              <button onClick={() => { logout(); setMenuOpen(false) }} className="mobile-logout-btn">
                 Logout
               </button>
             </div>
           ) : (
             <div className="mobile-auth-buttons">
-              <Link href="/login" className="mobile-link" onClick={() => setMenuOpen(false)}>
-                Login
-              </Link>
-              <Link href="/signup" className="mobile-nav-btn" onClick={() => setMenuOpen(false)}>
-                Sign Up
-              </Link>
+              <Link href="/login" className="mobile-link" onClick={() => setMenuOpen(false)}>Login</Link>
+              <Link href="/signup" className="mobile-nav-btn" onClick={() => setMenuOpen(false)}>Sign Up</Link>
             </div>
           )}
         </div>

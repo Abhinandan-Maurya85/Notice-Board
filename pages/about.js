@@ -60,7 +60,7 @@ export default function About() {
          <h3>Built for students</h3>
          <p>
            Designed with students in mind — clean, fast, and easy to use on
-           any device whether you're on campus or at home.
+           any device whether you&apos;re on campus or at home.
          </p>
        </div>
        <div className="about-card">
@@ -77,7 +77,7 @@ export default function About() {
        <h2>Contact</h2>
        <p>
          For technical issues, notice corrections, or to request posting access,
-         please contact your institution's IT helpdesk or the NoticeBoard admin team.
+         please contact your institution&apos;s IT helpdesk or the NoticeBoard admin team.
        </p>
      </div>
    </>

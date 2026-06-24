@@ -50,6 +50,7 @@ export default function NoticeCard({ notice, onDelete }) {
       )}
 
       {notice.imageUrl && (
+        // eslint-disable-next-line @next/next/no-img-element
         <img
           src={notice.imageUrl}
           alt={notice.title}

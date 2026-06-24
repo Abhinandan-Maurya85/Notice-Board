@@ -37,6 +37,8 @@ export async function getServerSideProps(context) {
   }
 }
 
+const bgImages = ['/images/lu1.webp', '/images/lu2.webp']
+
 export default function NoticesPage({ notices: initialNotices }) {
   const { user } = useAuth()
   const [notices, setNotices] = useState(initialNotices)
@@ -45,7 +47,6 @@ export default function NoticesPage({ notices: initialNotices }) {
 
 
   // ✅ SLIDESHOW ADDED HERE
-   const bgImages = ['/images/lu1.webp', '/images/lu2.webp']
   const [bgIndex, setBgIndex] = useState(0)
   useEffect(() => {
     const interval = setInterval(() => {
@@ -156,7 +157,7 @@ export default function NoticesPage({ notices: initialNotices }) {
         <div className="toolbar-right">
           {search && (
             <span className="search-result-info">
-              {filtered.length} result{filtered.length !== 1 ? 's' : ''} for "{search}"
+              {`${filtered.length} result${filtered.length !== 1 ? 's' : ''} for "${search}"`}
             </span>
           )}
           {user?.role === 'FACULTY' && (
