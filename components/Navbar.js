@@ -19,6 +19,7 @@ export default function Navbar() {
   const links = [
     { href: '/notices', label: 'All Notices' },
     { href: '/about', label: 'About Us' },
+    ...(!isFaculty && user ? [{ href: '/bookmarks', label: '🔖 Saved' }] : []),
     ...(isFaculty ? [{ href: '/analytics', label: 'Analytics' }] : [])
   ]
 

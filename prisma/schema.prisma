@@ -8,27 +8,35 @@ datasource db {
 }
 
 model Notice {
-  id            Int            @id @default(autoincrement())
-  title         String
-  body          String
-  category      String         @default("General")
-  priority      String         @default("Normal")
-  publishDate   DateTime
-  imageUrl      String?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  notifications Notification[]  // ← relation added
+  id          Int            @id @default(autoincrement())
+  title       String
+  body        String
+  category    String         @default("General")
+  priority    String         @default("Normal")
+  publishDate DateTime
+  imageUrl    String?
+  aiSummary   String?
+  isPinned    Boolean        @default(false)
+  expiresAt   DateTime?
+  viewCount   Int            @default(0)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  notifications Notification[]
+  bookmarks   Bookmark[]
+  views       NoticeView[]
 }
 
 model User {
-  id            Int            @id @default(autoincrement())
-  email         String         @unique
-  password      String
-  name          String
-  role          String
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  notifications Notification[]  // ← relation added
+  id        Int            @id @default(autoincrement())
+  email     String         @unique
+  password  String
+  name      String
+  role      String
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  notifications Notification[]
+  bookmarks Bookmark[]
+  views     NoticeView[]
 }
 
 model Notification {
@@ -37,9 +45,27 @@ model Notification {
   noticeId  Int?
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
-
-  // ✅ NEW — these two lines
   userId    Int
   user      User     @relation(fields: [userId], references: [id])
   notice    Notice?  @relation(fields: [noticeId], references: [id])
+}
+
+model Bookmark {
+  id       Int    @id @default(autoincrement())
+  userId   Int
+  noticeId Int
+  createdAt DateTime @default(now())
+  user     User   @relation(fields: [userId], references: [id])
+  notice   Notice @relation(fields: [noticeId], references: [id])
+  @@unique([userId, noticeId])
+}
+
+model NoticeView {
+  id       Int      @id @default(autoincrement())
+  userId   Int
+  noticeId Int
+  viewedAt DateTime @default(now())
+  user     User     @relation(fields: [userId], references: [id])
+  notice   Notice   @relation(fields: [noticeId], references: [id])
+  @@unique([userId, noticeId])
 }

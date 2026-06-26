@@ -9,13 +9,30 @@ export default async function handler(req, res) {
 
   if (req.method === 'GET') {
     try {
+      const { q, category } = req.query
+
+      const where = {}
+      if (q) {
+        where.OR = [
+          { title: { contains: q, mode: 'insensitive' } },
+          { body: { contains: q, mode: 'insensitive' } },
+        ]
+      }
+      if (category && category !== 'All') {
+        where.category = category
+      }
+
       const notices = await prisma.notice.findMany({
+        where,
         orderBy: [{ createdAt: 'desc' }],
       })
+
       const sorted = [
-        ...notices.filter(n => n.priority === 'Urgent'),
-        ...notices.filter(n => n.priority === 'Normal'),
+        ...notices.filter(n => n.isPinned),
+        ...notices.filter(n => !n.isPinned && n.priority === 'Urgent'),
+        ...notices.filter(n => !n.isPinned && n.priority !== 'Urgent'),
       ]
+
       return res.status(200).json(sorted)
     } catch (err) {
       return res.status(500).json({ error: err.message })
@@ -27,7 +44,7 @@ export default async function handler(req, res) {
       return res.status(403).json({ error: 'Access denied. Only faculty can post notices.' })
     }
     try {
-      const { title, body, category, priority, publishDate, imageUrl } = req.body
+      const { title, body, category, priority, publishDate, imageUrl, isPinned, expiresAt } = req.body
 
       if (!title || !title.trim())
         return res.status(400).json({ error: 'Title is required' })
@@ -35,6 +52,30 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Body is required' })
       if (!publishDate || isNaN(new Date(publishDate)))
         return res.status(400).json({ error: 'A valid publish date is required' })
+
+      // Call Gemini AI for summary
+      let aiSummary = null
+      try {
+        const geminiRes = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${process.env.GEMINI_API_KEY}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{
+                parts: [{
+                  text: `Summarize this university notice in 2 sentences max, plain text only, no bullet points:\n\nTitle: ${title}\n\n${body}`
+                }]
+              }]
+            })
+          }
+        )
+        const geminiData = await geminiRes.json()
+        aiSummary = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text || null
+      } catch (aiErr) {
+        // AI failure should not block notice creation
+        console.error('Gemini error:', aiErr.message)
+      }
 
       const notice = await prisma.notice.create({
         data: {
@@ -44,10 +85,12 @@ export default async function handler(req, res) {
           priority: priority || 'Normal',
           publishDate: new Date(publishDate),
           imageUrl: imageUrl || null,
+          isPinned: isPinned || false,
+          expiresAt: expiresAt ? new Date(expiresAt) : null,
+          aiSummary,
         },
       })
 
-      // ✅ FIX: create one notification per student (not one global one)
       const students = await prisma.user.findMany({
         where: { role: 'STUDENT' },
         select: { id: true },
@@ -64,7 +107,6 @@ export default async function handler(req, res) {
         })
       }
 
-      // 🔥 EMIT real-time event to each student via Socket.IO
       const io = res.socket.server.io
       if (io) {
         students.forEach(s => {
