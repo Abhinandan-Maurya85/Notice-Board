@@ -1,5 +1,6 @@
 import { prisma } from '../../../lib/prisma';
 import { hashPassword, signToken } from '../../../lib/auth';
+import { COURSES } from '../../../lib/courses';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -8,16 +9,24 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role, course } = req.body;
 
     if (!name || !name.trim()) return res.status(400).json({ error: 'Name is required' });
     if (!email || !email.trim()) return res.status(400).json({ error: 'Email is required' });
     if (!password || password.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters' });
     if (!role || (role !== 'STUDENT' && role !== 'FACULTY')) return res.status(400).json({ error: 'Role must be STUDENT or FACULTY' });
 
+    // Course is required for STUDENT, ignored for FACULTY
+    let finalCourse = null;
+    if (role === 'STUDENT') {
+      if (!course || !COURSES.includes(course)) {
+        return res.status(400).json({ error: 'Please select a valid course' });
+      }
+      finalCourse = course;
+    }
+
     const emailClean = email.trim().toLowerCase();
-    
-    // Check if user exists
+
     const existing = await prisma.user.findUnique({ where: { email: emailClean } });
     if (existing) {
       return res.status(400).json({ error: 'Email is already registered' });
@@ -30,6 +39,7 @@ export default async function handler(req, res) {
         email: emailClean,
         password: hashedPassword,
         role: role,
+        course: finalCourse,
       },
     });
 
@@ -38,12 +48,12 @@ export default async function handler(req, res) {
       email: user.email,
       name: user.name,
       role: user.role,
+      course: user.course,
     });
 
-    // Set HTTP-only cookie valid for 1 day
     res.setHeader('Set-Cookie', `token=${token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=86400`);
     return res.status(201).json({
-      user: { id: user.id, email: user.email, name: user.name, role: user.role }
+      user: { id: user.id, email: user.email, name: user.name, role: user.role, course: user.course }
     });
   } catch (err) {
     return res.status(500).json({ error: err.message });

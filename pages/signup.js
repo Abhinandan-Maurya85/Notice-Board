@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { useAuth } from '../context/AuthContext';
+import { COURSES } from '../lib/courses';
 
 export default function Signup() {
   const router = useRouter();
@@ -12,6 +13,7 @@ export default function Signup() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [course, setCourse] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -42,8 +44,13 @@ export default function Signup() {
       return;
     }
 
+    if (role === 'STUDENT' && !course) {
+      setError('Please select your course');
+      return;
+    }
+
     setSubmitting(true);
-    const res = await signup(name, email, password, role);
+    const res = await signup(name, email, password, role, role === 'STUDENT' ? course : null);
     setSubmitting(false);
 
     if (!res.success) {
@@ -95,6 +102,7 @@ export default function Signup() {
               onClick={() => {
                 setRole('FACULTY');
                 setError('');
+                setCourse('');
               }}
             >
               🔒 Faculty Portal
@@ -128,6 +136,23 @@ export default function Signup() {
                 className="auth-input"
               />
             </div>
+
+            {role === 'STUDENT' && (
+              <div className="form-group">
+                <label>Course</label>
+                <select
+                  value={course}
+                  onChange={(e) => setCourse(e.target.value)}
+                  required
+                  className="auth-input"
+                >
+                  <option value="" disabled>Select your course</option>
+                  {COURSES.map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             <div className="form-group">
               <label>Password</label>
